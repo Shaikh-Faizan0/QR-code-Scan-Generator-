@@ -1,51 +1,83 @@
-var1=1
-var2=2
-var3=int(input(" 1 For generat the QR code\n 2 For read the QR code \n Enter :"))
+import qrcode
+import sys
+import cv2
+from pyzbar.pyzbar import decode
+from warnings import filterwarnings
 
-if var1==var3:
-    # qrcode is a module of maker qrcode
-    import qrcode
+# Suppress warnings
+cv2.destroyAllWindows()
+sys.tracebacklimit = 0
 
-    # For taking the data from the user
-    img = qrcode.make(input("data:"))
-    # the qr code save as a image of name given my user input
-    name = input("Name of QR code img:")
-    img.save(f"{name}.jpg")
-elif var2==var3:
-    import cv2
-    # cv2 is a module for opencv function
-    from pyzbar.pyzbar import decode
-    # pyzbar is a module for scane the QR code
-    from warnings import filterwarnings
+def generate_qr_code():
+    data_to_encode = input("Enter the data you want to encode: ")
 
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(data_to_encode)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    name = input("Name of QR code image: ")
+    img.save(f"{name}.png")
+    print("\nQR code generated successfully as", f"{name}.png")
+
+def scan_qr_code():
     filterwarnings('ignore')
-
-    # Capture the video from default camera
     capture = cv2.VideoCapture(0)
 
-    print("Escape Key (Esc) to exit...")
+    print("Press the Escape Key (Esc) to exit...")
 
-    recieved_data = None
-    # if recieved date is none then do nothing
+    received_data = None
+
     while True:
-        # reading frame from the camera
         _, frame = capture.read()
-        # Decoding the QR Code
         decoded_data = decode(frame)
         try:
             data = decoded_data[0][0]
-            if data != recieved_data:
-                recieved_data = data
-                # if date is recived data then print the data
-                print("\n", data, "\n")
+            if data != received_data:
+                received_data = data
+                print("\nDecoded QR code data:", data, "\n")
+                break  # Exit the loop when data is received
 
-        except:
+        except IndexError:
             pass
 
-        # Showing video.
-        cv2.imshow("QR CODE Scanner", frame)
-        # To exit press Esc Key.
+        cv2.imshow("QR Code Scanner", frame)
         key = cv2.waitKey(1)
         if key == 27:
             break
+    print("Thank you for using the QR Code Generator and Scanner!")
+    capture.release()
+    cv2.destroyAllWindows()
 
+print("=" * 40)
+print("{:^40}".format("QR Code Generator and Scanner"))
+print("=" * 40)
+
+print("Welcome to QR Code Generator and Scanner!")
+print("1. Generate QR Code")
+print("2. Scan QR Code")
+
+
+while True:
+    try:
+        choice = int(input("Enter your choice (1/2): "))
+        if choice not in [1, 2]:
+            print("Invalid choice. Please enter 1 or 2.")
+        else:
+            break
+    except ValueError:
+        print("Invalid input. Please enter a valid number.")
+
+if choice == 1:
+    generate_qr_code()
+elif choice == 2:
+    scan_qr_code()
+
+print("=" * 55)
+print("{:^40}".format("Thank you for using the QR Code Generator and Scanner!"))
+print("=" * 55)
